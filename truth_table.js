@@ -14,6 +14,25 @@ const functions = {
     equivalence: [true, false, false, true],
 }
 
+function getBooleanCombinations(size) {
+    const columns = [];
+
+    let height = Math.pow(2, size);
+
+    for (let i = 0; i < size; i++) {
+        let column = [];
+        for (let j = 0; j < height; j++) {
+            let range = height * Math.pow(2, -i);
+            let flipPoint = range / 2;
+            column[j] = (j % range) < flipPoint;
+            // console.log(j, range, flipPoint, column[j]);
+        }   
+        columns[i] = column;
+    }
+
+    return columns;
+}
+
 function evalFunction(lh, op, rh) {
     let values = functions[op];
     if (lh && rh) {
@@ -27,102 +46,134 @@ function evalFunction(lh, op, rh) {
     }
 }
 
-let dictionary = {};
+const dictionary = {};
 
-function temp(str) {
-    
-    let dictionary = {};
+const handleComponent = (component, eval) => {
+    if (typeof component !== 'string') return component;
 
-    const parse = (str, eval = false) => {
-        let leftResult = false;
-        let operator = false;
-        let rightResult = false;
+    let negation = component.indexOf('~');
     
-        let openBrackets = [];
-        let closedBracketCount = 0;
-    
-    
-        for (let i = 0; i < str.length; i++) {
-            let c = str[i];
-            
-            let setResult = (content) => {
-                if (typeof content === 'string') {
-                    if (eval) {
-                        content = dictionary[content];
-                    } else {
-                        dictionary[content] = 'empty';
-                    }
-                }
-                if (operator) {
-                    if (rightResult) {
-                        if (typeof content === 'object') {
-                            rightResult = "SYNTAX ERROR";
-                        } else {   
-                            rightResult += content;
-                        }
-                    } else {
-                        rightResult = content;
-                    }
-                } else {
-                    if (leftResult) {
-                        if (typeof content === 'object') {
-                            leftResult = "SYNTAX ERROR";
-                        } else {
-                            leftResult += content;
-                        }
-                    } else {
-                        leftResult = content;
-                    }
-                }
-            }
-    
-            if (c === '(') {
-                openBrackets.push(i + 1);
-            } else if (c === ')') {
-                closedBracketCount += 1;
-                if (closedBracketCount === openBrackets.length) {
-                    let sub = str.substring(openBrackets[0], i);
-                    
-                    closedBracketCount = 0;
-                    openBrackets = [];
-                    
-                    setResult(parse(sub));
-                } 
-            } else if (openBrackets.length == 0) {
-                if (Object.keys(symbols).includes(c)) {
-                    operator = c;
-                } else {
-                    setResult(c);
-                }
-            }
-    
-            // console.log(c, leftResult, operator, rightResult);
-        }
-    
-        if (openBrackets.length !== closedBracketCount) {
-            return { error: `Parenthetical mismatch: ${openBrackets.length} open, ${closedBracketCount} close` };
-        } else if (!operator) {
-            return leftResult;
+    if (negation > 0) {
+        return "ERR";
+    } else {
+        let compStr = component.slice(negation + 1);
+        
+        if (eval) {
+            return (negation === 0 ? !dictionary[compStr] : dictionary[compStr])
         } else {
-            if (eval) {
-                return evalFunction(leftResult, symbols[operator], rightResult);
-            } else {
-                return { lhs: leftResult, op: operator, rhs: rightResult }; 
-            }
+            dictionary[compStr] = 'fill';
+            return component; 
         }
-    }
-
-    console.log(parse(str, false));
-    for (let key of Object.keys(dictionary)) {
-        dictionary[key] = true;
-    }
-    console.log(dictionary);
-    console.log(parse(str, true));
+    } 
 }
 
+const parse = (str, eval = false) => {
+    // console.log(str, eval ? "EVAL" : "");
 
-// let testStr = '(pv(p>q))&((r=z)>q)';
+    let leftResult = false;
+    let operator = false;
+    let rightResult = false;
 
-test = temp('p>(qvr)');
+    let openBrackets = [];
+    let closedBracketCount = 0;
 
-// console.log(JSON.stringify(test, null, 4));
+
+    for (let i = 0; i < str.length; i++) {
+        let c = str[i];
+        
+        let setResult = (content) => {
+            if (operator) {
+                if (!rightResult) {
+                    rightResult = content;
+                } else if (typeof content === 'object') {
+                    rightResult = "SYNTAX ERROR";
+                } else {   
+                    rightResult += content;
+                }
+            } else {
+                if (!leftResult) {
+                    leftResult = content;
+                } else if (typeof content === 'object') {
+                    leftResult = "SYNTAX ERROR";
+                } else {
+                    leftResult += content;
+                }
+            }
+        }
+
+        if (c === '(') {
+            openBrackets.push(i + 1);
+        } else if (c === ')') {
+            closedBracketCount += 1;
+            if (closedBracketCount === openBrackets.length) {
+                let sub = str.substring(openBrackets[0], i);
+                
+                closedBracketCount = 0;
+                openBrackets = [];
+                
+                setResult(parse(sub, eval));
+            } 
+        } else if (openBrackets.length == 0) {
+            if (Object.keys(symbols).includes(c)) {
+                operator = c;
+            } else {
+                setResult(c);
+            }
+        }
+
+        // console.log(c, leftResult, operator, rightResult);
+    } 
+    // Loop END
+
+    if (openBrackets.length !== closedBracketCount) {
+        return { error: `Parenthetical mismatch: ${openBrackets.length} open, ${closedBracketCount} close` };
+    }
+
+    leftResult = handleComponent(leftResult, eval);
+
+    if (operator) {
+        rightResult = handleComponent(rightResult, eval);
+
+        // console.log('Handling', leftResult, operator, rightResult)
+        
+        if (eval) {
+            // console.log('EVAL', leftResult, symbols[operator], rightResult);
+            return evalFunction(leftResult, symbols[operator], rightResult);
+        } else {
+            return { lhs: leftResult, op: operator, rhs: rightResult }; 
+        }
+    } else {
+        return leftResult;
+    }
+}
+
+function temp(str) {
+    console.log(parse(str, false));
+
+    let vars = Object.keys(dictionary); 
+    let combinations = getBooleanCombinations(vars.length);
+    
+    let result = [];
+
+    for (let combNum = 0; combNum < combinations[0].length; combNum++) {
+        for (let varNum = 0; varNum < vars.length; varNum++) {
+            dictionary[vars[varNum]] = combinations[varNum][combNum];
+        }
+        
+        let val = parse(str, true);
+        result.push({ ...dictionary, result: val });
+        
+        let logStr = '';
+        for (let [k, v] of Object.entries(dictionary)) {
+            logStr += `${k}: ${v? 'T' : 'F'} | `;
+        }
+        logStr += `${str}: ${val? 'T' : 'F'}`;
+        console.log(logStr);
+    }
+
+    return result;
+}
+
+test = temp('(p>(~q>r))=((s&t)vu)');
+// console.log(test);
+// console.log(JSON.stringify(test));
