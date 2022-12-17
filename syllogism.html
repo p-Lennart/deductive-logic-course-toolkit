@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Peter's Syllogism Generator</title>
+    <link rel="stylesheet" href="https://use.typekit.net/roe3tml.css">
+    <style type="text/css">
+      body {
+        color: #646669;
+        background-color: #323437;
+        font-family: roboto-mono, monospace;
+        font-weight: 450;
+        font-style: normal;
+        font-stretch: semi-expanded;
+      }
+      label {
+        color: #646669s;
+        margin: 0.5em;
+        margin-right: 0.75em;
+        font-size: 2.5em;
+        font-weight: 450;
+        transition: color 0.2s;
+        transition-timing-function: ease;
+      }
+      input {
+        color: #e2b714;
+        background-color: #222;
+
+        border: 0px solid #323437;
+        border-radius: 0.2em;
+        padding: 0px 0.15em;
+
+        margin: 0.1em;
+
+        font-size: 2.5em;
+
+        font-family: roboto-mono, monospace;
+        font-weight: 401;
+        font-style: normal;
+
+        /* transition: color 0.2s;
+        transition-timing-function: ease; */
+      }
+      input:focus {
+        background-color: #646669;
+      }
+      #inp1, #inp2, #inp3, #fig {
+        width: 0.8em;
+        text-align: center;
+      }
+      #fig {
+        margin-left: 0.2025em;
+      }
+      p:not(.slide) {
+        margin: 0.88em;
+        margin-top: 0em;
+        margin-bottom: 0.2em;
+        font-size: 1.5em;
+        transition: color 0.2s;
+        transition-timing-function: ease;
+      }
+      p#clear {
+        margin-top: 0.2em;
+      }
+      p#rand {
+        margin-top: 0.88em;
+      }
+      .disabled {
+        color: #222;
+      }
+      .enabled {
+        color: #646669;
+      }
+      .enabled:hover, .active {
+        color: #e2b714;
+      }
+      td {
+        vertical-align: top;
+      }
+      .slide {
+        padding: 0em;
+        margin: 0em;
+        font-size: 1.3em;
+        position: relative;
+        top: 12em;
+        color: rgba(0,0,0,0);
+        white-space: pre-line;
+
+        transition: color 0.2s, top 0.2s;
+        transition-timing-function: ease;
+      }
+      div#result, div#altResult {
+        padding: 0.36em;
+        padding-left: 1.75em;
+        font-size: 1.3em;
+      }
+      input ::-moz-selection, ::selection {
+        background: rgba(0,0,0,0);
+        color: #fff;
+      }
+      div#schema {
+        border: 0.15em solid #222;
+        border-right-style: none;
+        border-bottom-style: none;
+        border-left-style: hidden;
+        background-color: rgba(0,0,0,0);
+        padding: 1em;
+        margin-left: 1em;
+        width: 12em;
+        border-radius: 0em;
+        height: 0em;
+        font-size: 1.5em;
+
+        transition: height 0.2s, border-color 0.2s, border-left 0.2s, border-top-left-radius 0.2s, color 0s;
+        transition-timing-function: ease;
+      }
+      h1#side {
+        position: absolute;
+        top: 0;
+        right: 0;
+        text-align: right;
+        font-size: 3em;
+        font-weight: 450;
+        margin: 0em;
+        padding: 0em;
+        margin-right: 0.25em;
+        z-index: -1;
+      }
+      a {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        padding: 0.36em;
+        padding-left: 1.75em;
+        font-size: 2em;
+        color: #1a8cff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      a:active {
+        color: #66b3ff;
+      }
+    </style>
+    <script type="text/javascript">
+      function categoricalStatement(type_, terms) {
+        switch(type_) {
+          case "A":
+            return `All ${terms[0]} are ${terms[1]}`;
+          case "E":
+            return `No ${terms[0]} are ${terms[1]}`;
+          case "I":
+            return `Some ${terms[0]} are ${terms[1]}`;
+          case "O":
+            return `Some ${terms[0]} are not ${terms[1]}`;
+        }
+      }
+      const xqc = {
+        "major": {
+          "1": ["M", "P"],
+          "2": ["P", "M"],
+          "3": ["M", "P"],
+          "4": ["P", "M"]
+        },
+        "minor": {
+          "1": ["S", "M"],
+          "2": ["S", "M"],
+          "3": ["M", "S"],
+          "4": ["M", "S"]
+        },
+        "conclusion": {
+          "1": ["S", "P"],
+          "2": ["S", "P"],
+          "3": ["S", "P"],
+          "4": ["S", "P"]
+        }
+      }
+      const distr = {
+        "A": [true, false],
+        "E": [true, true],
+        "I": [false, false],
+        "O": [false, true]
+      }
+      function dist(term, md, fig, premise) {
+        let j = ["major","minor","conclusion"].indexOf(premise), i = xqc[premise][fig].indexOf(term);
+        return distr[md[j]][i];
+      }
+      function inputMood() {
+        let mood = [];
+        for (i=1; i<4; i++) {
+          let f = document.getElementById(`inp${i}`);
+          if (!["A","E","I","O"].includes(f.value)) return delOutput();
+          mood.push(f.value);
+        }
+        return mood;
+      }
+      async function gen() {
+        var mood = inputMood();
+        let v = document.getElementById(`fig`);
+
+        if (!["1","2","3","4"].includes(v.value)) return delOutput();
+        evaluate(mood, v.value);
+      }
+      function getRndInclusiveInteger(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) ) + min;
+      }
+      function nodeIndex(item, nodeList) {
+        return Array.prototype.indexOf.call(nodeList, item);
+      }
+      async function evaluate(mood, figure) {
+        var result = [];
+        let aff = ["A","I"];
+        let neg = ["E","O"];
+        let fullList = ["Undistributed Middle", "Illicit Major", "Illicit Minor", "Two Negative Premises", "Negative Premise, Affirmative Conclusion", "Two Affirmative Premises, Negative Conclusion", "Valid"];
+        // 1. Fallacy of Distributed Middle
+        let MmajorDistr = dist("M", mood, figure, "major");
+        let MminorDistr = dist("M", mood, figure, "minor");
+        if (!MmajorDistr && !MminorDistr) result.push(fullList[0]);
+
+        // 2. Fallacy of Illicit Major/minor
+        let PconcDistr = dist("P", mood, figure, "conclusion");
+        let SconcDistr = dist("S", mood, figure, "conclusion");
+
+        if (PconcDistr) {
+          let PmajorDistr = dist("P", mood, figure, "major");
+          if (!PmajorDistr) result.push(fullList[1]);
+        }
+        if (SconcDistr) {
+          let SmajorDistr = dist("S", mood, figure, "minor");
+          if (!SmajorDistr) result.push(fullList[2]);
+        }
+
+        // 3. Fallacy of Two Negative Premises
+        if (neg.includes(mood[0]) && neg.includes(mood[1])) result.push(fullList[3]);
+
+        // 4.	Fallacy of a Negative Premise and an Affirmative Conclusion
+        if (aff.includes(mood[2])) if (neg.includes(mood[0]) || neg.includes(mood[1])) result.push(fullList[4]);
+
+        // 5.	Fallacy of Two Affirmative Premises and a Negative Conclusion
+        if (neg.includes(mood[2])) if (aff.includes(mood[0]) && aff.includes(mood[1])) result.push(fullList[5]);
+
+        // Evaluation
+        if (!result.length) result.push(fullList[fullList.length-1]);
+
+        diff = fullList.filter(x => !result.includes(x));
+        if (diff.length) {
+          for (i of diff) {
+            let match = document.getElementById(i);
+            if (match) match.remove();
+          }
+        }
+        function triggerAnim(c, el) {
+          setTimeout(() => {
+            el.style.color = c;
+            el.style.top = "0em";
+          }, 5);
+        }
+        for (q of result) {
+          if (!document.getElementById(q)) {
+            g = document.createElement('p');
+            g.setAttribute("id", q);
+            g.className = "slide";
+
+            var txt_ = q;
+            if ((document.querySelector("html").clientWidth / q.length) < 43.2) {
+              let replace = {
+                "Affirmative": "Aff.",
+                "Negative": "Neg.",
+                "Undistributed": "Undist.",
+                "Illicit": "Ill.",
+                "Major": "Maj.",
+                "Minor": "Min.",
+		"Premise": "Pr.",
+		"Premise,": "Pr.",
+		"Premises": "Pr.,",
+		"Premises,": "Pr.,",
+		"Conclusion": "Con.",
+		"Middle": "Mid."
+              }
+              let txtNode = q.split(" ");
+              let e = [];
+              for (v of txtNode) {
+                if (replace[v]) v = replace[v];
+                e.push(v);
+              }
+              txt_ = e.join(" ");
+              console.log("Abbreviating", txt_);
+            }
+            let tx = document.createTextNode(txt_);
+            g.appendChild(tx);
+
+            let encapsulation = document.querySelector("div#result");
+            if (document.querySelector("html").clientWidth < 1410) encapsulation = document.querySelector("div#altResult");
+            encapsulation.appendChild(g);
+
+            let outputColor = "#ca4754";
+            if (q == "Valid") outputColor = "#93c47d";
+
+            m_ = document.getElementById(q);
+            triggerAnim(outputColor, m_);
+          }
+        }
+        let schGen = document.querySelector('#sch');
+        schGen.mood_ = mood;
+        schGen.fig_ = figure;
+        let sc = document.querySelector('#schema');
+
+        if (schGen.className != "active") {
+          schGen.className = "enabled";
+          sc.style.borderColor = "#646669";
+        }
+        schGen.addEventListener("click", sch, false);
+      }
+      function delOutput() {
+        let el = document.querySelector("p.slide");
+        if (el) el.remove();
+
+        let schGen = document.querySelector('#sch');
+        schGen.removeEventListener("click", sch, false);
+        schGen.className = "disabled";
+
+        let sc = document.querySelector('#schema');
+
+        sc.style.transition = "height 0.2s ease, border-color 0.2s ease, border-left 0.2s ease, border-top-left-radius 0.2s ease, color 0.2s ease, padding-top 0.2s ease";
+
+        sc.style.height = "0em";
+        sc.style.borderLeft = "0em hidden #222";
+        sc.style.borderTopLeftRadius = "0em";
+        sc.style.color = "rgba(0,0,0,0)";
+        sc.style.paddingTop = "0em";
+        sc.style.borderColor = "#222";
+        sc.style.backgroundColor = "rgba(0,0,0,0)";
+      }
+      function sch() {
+        let schGen = document.querySelector('#sch');
+        var outputStr = '';
+        var terms = [];
+        var mood_ = schGen.mood_;
+        var fig = schGen.fig_;
+        const md = "M", mn = "S", mj = "P";
+        for (var i=0; i<3; i++) {
+          var index_ = xqc[["major","minor","conclusion"][i]][fig];
+          if (index_.indexOf("M") > -1) terms[index_.indexOf("M")] = md;
+          if (index_.indexOf("S") > -1) terms[index_.indexOf("S")] = mn;
+          if (index_.indexOf("P") > -1) terms[index_.indexOf("P")] = mj;
+          if (i==2) outputStr += '∴ ';
+          outputStr += (categoricalStatement(mood_[i], terms) + '<br/>');
+        }
+
+        let sc = document.querySelector('#schema');
+        sc.style.transition = "height 0.2s ease, border-color 0.2s linear, border-left 0.2s ease, border-top-left-radius 0.2s ease, background-color 0.2s ease, color 0s linear";
+        sc.style.height = "3.4em";
+        sc.style.borderLeft = "0.15em solid #222";
+        sc.style.borderTopLeftRadius = "0.2em";
+        sc.style.color = "#e2b714";
+        sc.style.borderColor = "#e2b714";
+        sc.style.backgroundColor = "#222";
+        sc.innerHTML = outputStr;
+        sc.style.paddingTop = "0.6em";
+
+        schGen.className = "active";
+      }
+      window.onload = () => {
+
+        let inputs = document.querySelectorAll(".inp");
+        let figInp = inputs[3];
+
+        for (i=0; i<4; i++) {
+          let inp = inputs[i];
+          inp.value = " ";
+
+          var selectSelf = function(event) {
+            let label_ = document.querySelector("label[for='inp1']");
+            let e = event.target;
+            var lastImp = nodeIndex(e, inputs);
+            if (lastImp == 3) label_ = document.querySelector("label[for='fig']");
+            label_.className = "active";
+            if (event.keyCode) {
+              if (event.keyCode == 37) lastImp--;
+              if (event.keyCode == 39 || event.keyCode == 13) lastImp++;
+              if (event.keyCode == 13 && lastImp >= (inputs.length-1)) return inputs[inputs.length-1].blur();
+              if (lastImp < 0) lastImp = inputs.length-1;
+              if (lastImp > (inputs.length-1) && lastImp != 69420) lastImp = 0;
+              e = inputs[lastImp];
+            }
+            e.focus();
+            e.select();
+          }
+          inp.addEventListener("focus", selectSelf);
+          inp.addEventListener("keydown", selectSelf);
+          inp.addEventListener("blur", () => {
+            document.querySelector("label[for='inp1']").className = "enabled";
+            document.querySelector("label[for='fig']").className = "enabled";
+          })
+
+          inp.addEventListener("input", updateData => {
+            var updateValue = updateData.data;
+            if (!updateValue) updateValue = "";
+            var case1 = ["A","E","I","O"], dest1 = inp;
+            var val1 = updateValue.toUpperCase();
+            if (nodeIndex(inp, inputs) == 3) {
+              case1 = ["1","2","3","4"];
+              dest1 = figInp;
+            }
+            function xQcOW(case_, dest, val, rep) {
+              if (dest && case_.includes(val)) {
+                if (rep) dest.value = val;
+                if (!rep || nodeIndex(dest, inputs) == 3) {
+                  if (nodeIndex(dest, inputs) < 3) dest = inputs[nodeIndex(dest, inputs)-1];
+                  gen();
+                  dest.focus();
+                  dest.select();
+                } else {
+                  var case2 = ["A","E","I","O"];
+                  let dest2 = inputs[nodeIndex(dest, inputs)+1];
+                  if (nodeIndex(dest2, inputs) == 3) case2 = ["1","2","3","4"];
+                  return xQcOW(case2, dest2, dest2.value.toUpperCase(), false);
+                }
+              } else {
+                dest.value = "";
+                dest.focus();
+                dest.select();
+                delOutput();
+                setTimeout(delOutput(), 5);
+              }
+            }
+            xQcOW(case1, dest1, val1, true);
+          });
+        }
+        let clearButton = document.querySelector('#clear');
+        clearButton.addEventListener("click", () => {
+          for (i of inputs) i.value = "";
+          delOutput();
+        });
+        function randomizer() {
+          delOutput();
+          var mood = [];
+          var fig = ["1","2","3","4"][getRndInclusiveInteger(0,3)];
+          for (i=1; i<4; i++) {
+            let f = document.getElementById(`inp${i}`);
+            f.value = ["A","E","I","O"][getRndInclusiveInteger(0,3)];
+          }
+          let v = document.getElementById(`fig`);
+          v.value = fig;
+          let sc = document.querySelector('#sch');
+          gen();
+          console.log(sc);
+          if (sc.className == "active") {
+            let schGen = document.querySelector('#schema');
+            schGen.mood_ = mood;
+            schGen.fig_ = fig;
+            sch();
+          }
+        }
+        let randButton = document.querySelector('#rand');
+        randButton.addEventListener("click", randomizer);
+
+        function logoSizing() {
+          let windowWidth = document.querySelector("html").clientWidth;
+          console.log(windowWidth);
+          document.querySelector("h1#side").style.fontSize = (windowWidth / 672) + "em";
+        }
+        window.onresize = logoSizing;
+
+        logoSizing();
+        inputs[0].focus();
+        inputs[0].select();
+      }
+    </script>
+  </head>
+  <body>
+    <table id="frame"><tr>
+      <td>
+        <label for="inp1", class="enabled">Mood:</label><input type="text", maxlength="1", size="1", id="inp1", class="inp" /><input type="text", maxlength="1", size="1", id="inp2", class="inp" /><input type="text", maxlength="1", size="1", id="inp3", class="inp" /><br />
+        <label for="fig", class="enabled">Figure:</label><input type="text", maxlength="1", size="1", id="fig", class="inp" />
+        <p id="clear", class="enabled">Clear Fields >></p>
+        <p id="rand", class="enabled">Randomize >></p>
+        <p id="sch", class="disabled">Generate Schema  >></p>
+      </td>
+      <td>
+        <div id="result"></div>
+      </td>
+    </tr></table>
+    <div id="schema"></div>
+    <h1 id="side">Peter's Fancy Syllogism<br/>Toolkit [W.I.P.]<!-- <br/><sub>Schema Only | Custom Terms</sub> --></h1>
+    <div id="altResult"></div>
+  </body>
+</html>
