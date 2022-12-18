@@ -149,31 +149,32 @@ const parse = (str, eval = false) => {
 
 function temp(str) {
     console.log(parse(str, false));
-
-    let vars = Object.keys(dictionary); 
+    
+    let vars = Object.keys(dictionary);
+    vars.sort((a, b) => str.indexOf(a) - str.indexOf(b)); // Sort variables by occurance
+    
     let combinations = getBooleanCombinations(vars.length);
     
     let result = [];
-
+    
     for (let combNum = 0; combNum < combinations[0].length; combNum++) {
+        let logStr = '';
+        
         for (let varNum = 0; varNum < vars.length; varNum++) {
             dictionary[vars[varNum]] = combinations[varNum][combNum];
+            logStr += `${vars[varNum]}: ${dictionary[vars[varNum]]? 'T' : 'F'} | `;
         }
-        
+
         let val = parse(str, true);
         result.push({ ...dictionary, result: val });
-        
-        let logStr = '';
-        for (let [k, v] of Object.entries(dictionary)) {
-            logStr += `${k}: ${v? 'T' : 'F'} | `;
-        }
         logStr += `${str}: ${val? 'T' : 'F'}`;
+
         console.log(logStr);
     }
 
     return result;
 }
 
-test = temp('(p>(~q>r))=((s&t)vu)');
+test = temp('(p>(qvr))=(r&x)');
 // console.log(test);
 // console.log(JSON.stringify(test));
