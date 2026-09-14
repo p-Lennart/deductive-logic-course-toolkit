@@ -186,7 +186,14 @@ const parse = (str, eval = false) => {
     }
 }
 
+function clearDictionary() {
+    for (let k in dictionary) {
+        delete dictionary[k];
+    }
+}
+
 function evalSingle(argStr) {
+    clearDictionary();
     console.log(parse(argStr, false));
     
     let vars = Object.keys(dictionary);
@@ -215,12 +222,13 @@ function evalSingle(argStr) {
 }
 
 function evalMultipleEquiv(argStrArr) {
+    clearDictionary();
     for (let str of argStrArr) {
         console.log(parse(str, false));
     }
 
     let vars = Object.keys(dictionary);
-    vars.sort((a, b) => a - b); // Sort variables alphabetically
+    vars.sort((a, b) => a.localeCompare(b)); // Sort variables alphabetically
     
     let combinations = getBooleanCombinations(vars.length);
 
@@ -270,13 +278,14 @@ function evalMultipleEquiv(argStrArr) {
 }
 
 function evalArgValidity(argStrArr, csqStr) {
+    clearDictionary();
     for (let str of argStrArr) {
         console.log(parse(str, false));
     }
     console.log(parse(csqStr));
 
     let vars = Object.keys(dictionary);
-    vars.sort((a, b) => a - b); // Sort variables alphabetically
+    vars.sort((a, b) => a.localeCompare(b)); // Sort variables alphabetically
     
     let combinations = getBooleanCombinations(vars.length);
 
@@ -323,16 +332,73 @@ function evalArgValidity(argStrArr, csqStr) {
         console.log(`${colors.FgGreen}Argument Valid${colors.Reset}`);
         return [result, true];
     } else {
-        console.log(`${colors.FgRed}Argument Inalid${colors.Reset}`);
+        console.log(`${colors.FgRed}Argument Invalid${colors.Reset}`);
         return [result, false];
     }
 
 }
 
-// test = temp('~(p>q)&~(p&~q)');
-// test = evalSingle('~(p>q)&~(p&~q)');
-// test = evalMultipleEquiv(['~(p>q)', '~(p&~q)']);
-test = evalArgValidity(['a', 'a>b', 'b>c', 'c>d', 'd>e', 'e>f', 'f>g', 'g>h'], 'h');
-// test = evalArgValidity(['p>q', '~p'], '~q');
-// console.log(test);
-// console.log(JSON.stringify(test));
+// ============================================================================
+// Module Exports
+// ============================================================================
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        parse,
+        evalSingle,
+        evalMultipleEquiv,
+        evalArgValidity,
+        colors,
+        symbols,
+        functions
+    };
+}
+
+// ============================================================================
+// Example Demonstrations
+// Run directly in terminal: node truth_table.js
+// ============================================================================
+if (typeof require !== 'undefined' && require.main === module) {
+    console.log(`${colors.Bright}${colors.FgCyan}=== LOGIC TOOLKIT: TRUTH TABLE ENGINE ===${colors.Reset}\n`);
+
+    // ------------------------------------------------------------------------
+    // Example 1: Single Truth Table Evaluation
+    // Evaluates a compound statement: ~(p & q) [De Morgan's component]
+    // ------------------------------------------------------------------------
+    console.log(`${colors.Bright}1. Evaluating Single Proposition: ~(p&q)${colors.Reset}`);
+    evalSingle('~(p&q)');
+    console.log();
+
+    // ------------------------------------------------------------------------
+    // Example 2: Testing Logical Equivalence
+    // Proves De Morgan's Law: ~(p & q) ≡ (~p v ~q)
+    // ------------------------------------------------------------------------
+    console.log(`${colors.Bright}2. Testing Logical Equivalence (De Morgan's Law): ~(p&q) vs (~pv~q)${colors.Reset}`);
+    evalMultipleEquiv(['~(p&q)', '~pv~q']);
+    console.log();
+
+    // ------------------------------------------------------------------------
+    // Example 3: Deductive Argument Validity (Modus Ponens)
+    // Premises: [p > q, p], Conclusion: q
+    // Proves validity (no counterexample where premises are T and conclusion is F)
+    // ------------------------------------------------------------------------
+    console.log(`${colors.Bright}3. Testing Deductive Argument (Modus Ponens - Valid): p>q, p ∴ q${colors.Reset}`);
+    evalArgValidity(['p>q', 'p'], 'q');
+    console.log();
+
+    // ------------------------------------------------------------------------
+    // Example 4: Formal Fallacy Detection (Affirming the Consequent)
+    // Premises: [p > q, q], Conclusion: p
+    // Proves invalidity by identifying counterexample row (p=F, q=T) in red
+    // ------------------------------------------------------------------------
+    console.log(`${colors.Bright}4. Testing Deductive Argument (Affirming the Consequent - Invalid): p>q, q ∴ p${colors.Reset}`);
+    evalArgValidity(['p>q', 'q'], 'p');
+    console.log();
+
+    // ------------------------------------------------------------------------
+    // Example 5: Large Hypothetical Syllogism Chain (8 variables, 256 rows)
+    // Premises: [a, a>b, b>c, c>d, d>e, e>f, f>g, g>h], Conclusion: h
+    // Uncomment below to test scalability across 2^8 truth assignments:
+    // ------------------------------------------------------------------------
+    // console.log(`${colors.Bright}5. Scalability Test (8-Variable Hypothetical Syllogism Chain - 256 rows)${colors.Reset}`);
+    // evalArgValidity(['a', 'a>b', 'b>c', 'c>d', 'd>e', 'e>f', 'f>g', 'g>h'], 'h');
+}
