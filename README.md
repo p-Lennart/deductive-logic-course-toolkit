@@ -4,23 +4,6 @@ A collection of tools and course notes created for a logic elective class. The p
 
 ---
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Course Notes](#course-notes)
-  - [Categorical Logic](#categorical-logic-categorical-logic-notesmd)
-  - [Propositional Logic](#propositional-logic-propositional-logic-notesmd)
-- [Syllogism Generator (`syllogism.html`)](#syllogism-generator-syllogismhtml)
-  - [Features & Interface](#features--interface)
-  - [How It Works](#how-it-works)
-  - [Demo & Usage](#demo--usage)
-- [Truth Table Generator (`truth_table.js`)](#truth-table-generator-truth_tablejs)
-  - [Features & Supported Operators](#features--supported-operators)
-  - [How It Works](#how-it-works-1)
-  - [Demo & Usage](#demo--usage-1)
-
----
-
 ## Overview
 
 The repository covers two foundational areas of formal deductive logic studied in the course:
