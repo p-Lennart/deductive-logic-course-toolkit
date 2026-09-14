@@ -35,29 +35,18 @@ Each script implements concepts from the corresponding set of notes:
 ```mermaid
 flowchart TD
     subgraph Notes ["Course Notes"]
-        CLN["categorical-logic-notes.md<br/>• Categorical statements (A, E, I, O)<br/>• Syllogism moods & figures<br/>• Rules of validity & distribution"]
-        PLN["propositional-logic-notes.md<br/>• Connectives (~, &, v, >, =)<br/>• Truth table construction<br/>• Equivalence & argument validity"]
+        CLN["<code>categorical-logic-notes.md</code><br/>• Categorical statements (A, E, I, O)<br/>• Syllogism moods & figures<br/>• Rules of validity & distribution"]
+        PLN["<code>propositional-logic-notes.md</code><br/>• Connectives (~, &, v, >, =)<br/>• Truth table construction<br/>• Equivalence & argument validity"]
     end
 
     subgraph Tools ["Tools"]
-        SYLL["syllogism.html<br/>• Interactive web validator<br/>• Fallacy detection<br/>• Standard schema generator"]
-        TT["truth_table.js<br/>• CLI truth table generator<br/>• Formula parsing & evaluation<br/>• Validity & equivalence testing"]
+        SYLL["<code>syllogism.html</code><br/>• Interactive web validator<br/>• Fallacy detection<br/>• Standard schema generator"]
+        TT["<code>truth_table.js</code><br/>• CLI truth table generator<br/>• Formula parsing & evaluation<br/>• Validity & equivalence testing"]
     end
 
     CLN -.->|Rules & schemas| SYLL
     PLN -.->|Semantics & operators| TT
 ```
-
----
-
-## Repository Structure
-
-| File | Description |
-| :--- | :--- |
-| [`categorical-logic-notes.md`](./categorical-logic-notes.md) | Class notes on Aristotelian term logic, definitions, categorical statements, distribution, syllogisms, and fallacies. |
-| [`propositional-logic-notes.md`](./propositional-logic-notes.md) | Class notes on symbolic logic, truth tables, rules of inference/replacement, formal proofs, and Boolean logic. |
-| [`syllogism.html`](./syllogism.html) | A single-page web app for validating standard-form categorical syllogisms and displaying their schema. |
-| [`truth_table.js`](./truth_table.js) | A Node.js CLI script for parsing logical expressions, printing truth tables, and testing arguments. |
 
 ---
 
@@ -72,7 +61,7 @@ Covers classical Aristotelian logic, which deals with arguments whose conclusion
 
 ### Propositional Logic ([`propositional-logic-notes.md`](./propositional-logic-notes.md))
 Covers truth-functional deductive logic, where atomic propositions are combined into compound expressions using logical connectives:
-- **Operators & Tables**: Defining truth tables for negation ($\sim$), conjunction ($\&$), disjunction ($v$), conditional/implication ($>$), and biconditional/equivalence ($=$).
+- **Operators & Tables**: Defining truth tables for negation ($\sim$), conjunction (&), disjunction ($v$), conditional/implication ($>$), and biconditional/equivalence ($=$).
 - **Truth Table Analysis**: Generating $2^n$ truth rows to classify propositions (tautology, self-contradiction, contingent), check logical equivalence, and test argument validity (looking for rows with true premises and a false conclusion).
 - **Formal Proofs**: The 9 rules of inference (e.g., Modus Ponens, Modus Tollens, Disjunctive Syllogism) and 10 rules of replacement (e.g., De Morgan's laws, Commutativity, Implication).
 - **Digital Logic**: An introduction to binary arithmetic, logic gates, and Karnaugh maps (K-maps).
@@ -82,23 +71,6 @@ Covers truth-functional deductive logic, where atomic propositions are combined 
 ## Syllogism Generator (`syllogism.html`)
 
 A lightweight web page that tests any of the 256 standard-form categorical syllogisms for validity.
-
-```
-+-------------------------------------------------------------------------------+
-|  Mood: [ A ] [ A ] [ A ]          Undistributed Middle (Red)                  |
-|Figure: [ 2 ]                                                                  |
-|                                                                               |
-|Clear Fields >>                                                                |
-|Randomize >>                                                                   |
-|Generate Schema >>                                                             |
-|                                                                               |
-|  +-------------------------------------------------------------------------+  |
-|  | All P are M                                                             |  |
-|  | All S are M                                                             |  |
-|  | ∴ All S are P                                                           |  |
-|  +-------------------------------------------------------------------------+  |
-+-------------------------------------------------------------------------------+
-```
 
 ### Features & Interface
 - **Theme**: Minimalist dark UI inspired by Monkeytype (`#323437` background, `#e2b714` accents).
@@ -184,11 +156,3 @@ evalMultipleEquiv(['p>q', '~pvq']);
 // Test argument validity
 evalArgValidity(['p>q', '~q'], '~p'); // Modus Tollens (Valid)
 ```
-
----
-
-## Author & License
-
-- **Author**: Peter Edvardsson
-- **Context**: Logic Elective Coursework
-- **License**: MIT
