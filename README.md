@@ -1,4 +1,4 @@
-# Logic Toolkit
+# Formal Deductive Logic Course Toolkit
 
 A collection of tools and course notes created for a logic elective class. The project includes an interactive web-based categorical syllogism validator, a command-line truth table generator for propositional logic, and reference notes covering both subjects.
 
@@ -7,7 +7,6 @@ A collection of tools and course notes created for a logic elective class. The p
 ## Table of Contents
 
 - [Overview](#overview)
-- [Repository Structure](#repository-structure)
 - [Course Notes](#course-notes)
   - [Categorical Logic](#categorical-logic-categorical-logic-notesmd)
   - [Propositional Logic](#propositional-logic-propositional-logic-notesmd)
@@ -19,7 +18,6 @@ A collection of tools and course notes created for a logic elective class. The p
   - [Features & Supported Operators](#features--supported-operators)
   - [How It Works](#how-it-works-1)
   - [Demo & Usage](#demo--usage-1)
-- [Author & License](#author--license)
 
 ---
 
